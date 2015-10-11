@@ -438,8 +438,14 @@ func createCgroupConfig(name string, spec *specs.LinuxRuntimeSpec, devices []*co
 	if err != nil {
 		return nil, err
 	}
+	external := false
+	if spec.Linux.CgroupsPath != "" {
+		name = spec.Linux.CgroupsPath
+		external = true
+	}
 	c := &configs.Cgroup{
 		Name:           name,
+		CgroupExternal: external,
 		Parent:         myCgroupPath,
 		AllowedDevices: append(devices, allowedDevices...),
 	}

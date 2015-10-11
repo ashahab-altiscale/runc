@@ -118,8 +118,10 @@ func (m *Manager) Apply(pid int) (err error) {
 		}
 	}()
 	for _, sys := range subsystems {
-		if err := sys.Apply(d); err != nil {
-			return err
+		if !m.Cgroups.CgroupExternal {
+			if err := sys.Apply(d); err != nil {
+				return err
+			}
 		}
 		// TODO: Apply should, ideally, be reentrant or be broken up into a separate
 		// create and join phase so that the cgroup hierarchy for a container can be
@@ -180,7 +182,7 @@ func (m *Manager) GetStats() (*cgroups.Stats, error) {
 func (m *Manager) Set(container *configs.Config) error {
 	for name, path := range m.Paths {
 		sys, err := subsystems.Get(name)
-		if err == errSubsystemDoesNotExist || !cgroups.PathExists(path) {
+		if err == errSubsystemDoesNotExist || !cgroups.PathExists(path) || container.Cgroups.CgroupExternal {
 			continue
 		}
 		if err := sys.Set(path, container.Cgroups); err != nil {

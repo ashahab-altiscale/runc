@@ -12,7 +12,8 @@ const (
 
 type Cgroup struct {
 	Name string `json:"name"`
-
+	// indicates that this is an externally passed, fully created cgroup
+	CgroupExternal bool `json:cgroup_external`
 	// name of parent cgroup or slice
 	Parent string `json:"parent"`
 
