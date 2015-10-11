@@ -5,6 +5,8 @@ package fs
 import (
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/libcontainer/configs"
+	"github.com/opencontainers/runc/libcontainer/utils"
+	"github.com/Sirupsen/logrus"
 )
 
 type DevicesGroup struct {
@@ -26,6 +28,14 @@ func (s *DevicesGroup) Apply(d *data) error {
 }
 
 func (s *DevicesGroup) Set(path string, cgroup *configs.Cgroup) error {
+	isHostUserns, err := utils.IsHostUserns()
+	if err != nil {
+		return err
+	}
+	if isHostUserns {
+		logrus.Debug("In userns")
+		return nil
+	}
 	if !cgroup.AllowAllDevices {
 		if err := writeFile(path, "devices.deny", "a"); err != nil {
 			return err

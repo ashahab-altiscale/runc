@@ -18,6 +18,7 @@ import (
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/libcontainer/configs"
 	"github.com/opencontainers/runc/libcontainer/label"
+	"github.com/opencontainers/runc/libcontainer/utils"
 )
 
 const defaultMountFlags = syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
@@ -370,7 +371,15 @@ func createDevices(config *configs.Config) error {
 	for _, node := range config.Devices {
 		// containers running in a user namespace are not allowed to mknod
 		// devices so we can just bind mount it from the host.
-		if err := createDeviceNode(config.Rootfs, node, config.Namespaces.Contains(configs.NEWUSER)); err != nil {
+		isHostUserns, err := utils.IsHostUserns()
+		if err != nil {
+			return err
+		}
+		isContainerUserns := config.Namespaces.Contains(configs.NEWUSER)
+		if err := createDeviceNode(
+			config.Rootfs,
+			node,
+			isContainerUserns || isHostUserns); err != nil {
 			syscall.Umask(oldMask)
 			return err
 		}
