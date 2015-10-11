@@ -4,13 +4,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
+	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"syscall"
 )
 
 const (
 	exitSignalOffset = 128
 )
+
+var userns_regex, _ = regexp.Compile("0\\s+0\\s+\\d+")
 
 // GenerateRandomName returns a new name joined with a prefix.  This size
 // specified is used to truncate the randomly generated value
@@ -42,4 +46,20 @@ func ExitStatus(status syscall.WaitStatus) int {
 		return exitSignalOffset + int(status.Signal())
 	}
 	return status.ExitStatus()
+}
+
+
+//Checks if host itself usernamespaced, to allow for
+//containers in containers case
+func IsHostUserns() (bool, error) {
+	//scan uid map. should never be more than 5 lines long
+	dat, err := ioutil.ReadFile("/proc/self/uid_map")
+	if err != nil {
+		return false, err
+	}
+	if userns_regex.Match(dat) {
+		return false, nil
+	}
+
+	return true, nil
 }
