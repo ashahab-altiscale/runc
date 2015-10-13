@@ -4,10 +4,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	"path/filepath"
-	"syscall"
-	"regexp"
 	"io/ioutil"
+	"path/filepath"
+	"regexp"
+	"syscall"
 )
 
 const (
@@ -48,14 +48,14 @@ func ExitStatus(status syscall.WaitStatus) int {
 
 //Checks if host itself usernamespaced, to allow for
 //containers in containers case
-func IsHostUserns() (bool, error){
+func IsHostUserns() (bool, error) {
 	//scan uid map. should never be more than 5 lines long
 	dat, err := ioutil.ReadFile("/proc/self/uid_map")
 	reg, err := regexp.Compile("0\\s+0\\s+\\d+")
 	if err != nil {
 		return false, err
 	}
-	if  reg.Match(dat) {
+	if reg.Match(dat) {
 		return false, nil
 	}
 
